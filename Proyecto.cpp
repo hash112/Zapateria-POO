@@ -52,18 +52,15 @@ string quitarEspacio(string str)
 class Menu 
 { // Esta es la clase estandard de los menus
     private:
-        int regresar;
-        int numOpciones;
-        int margenTitulo;
-        int y;
+        int regresar, numOpciones, margenTitulo, y;
         string nombreMenu;
         vector <string> opciones;
 
     public:
-        Menu(string nombre_menu, int margen_titulo) 
+        Menu(string _nombre_menu, int _margen_titulo) 
         { // El constructor consta del titulo del menu y su acomodo con respecto a la posicion titulo
-            nombreMenu = nombre_menu;
-            margenTitulo = margen_titulo;
+            nombreMenu = _nombre_menu;
+            margenTitulo = _margen_titulo;
         }
         void dibujarCuadrado()
         { // Este cuadrado será el principal canvas del programa
@@ -81,20 +78,23 @@ class Menu
             gotoxy(POSICION_X-7, 28);
             cout << INSTRUCCIONES;
         }
-        void obtenerTexto(int menu)
+        void obtenerTexto(int menu, int submenu)
         { // En este metodo obtendremos los textos necesarios para cada menu y submenu
             switch(menu)
             {
             case 0:
+                break;
+
+            case 1:
+                opciones.push_back("Ingrese el nombre del empleado");
+
+            case 6:
                 opciones.push_back("Usuario");
                 opciones.push_back("Contrase\xA4""a");
                 opciones.push_back("Ingresar");
                 opciones.push_back("Salir");
                 numOpciones = 4;
                 break;
-
-            case 1:
-                opciones.push_back("Ingrese el nombre del empleado");
             
             default:
                 break;
@@ -168,9 +168,7 @@ class Empleado
     private:
         string nombre;
         string password;
-        int codigo;
-        int salario;
-        int tipoEmpleado;
+        int codigo, salario, tipoEmpleado;
 
     public:
         Empleado(string _nombre, string _password, int _salario, int _tipoEmpledo)
@@ -180,12 +178,12 @@ class Empleado
             salario = _salario;
             tipoEmpleado = _tipoEmpledo;
         }
-        void buscar(int usuario)
-        { // PUES SUPONGO QUE ESTA YA DEBERIA JALAR, SOLO FALTARIA AJUSTARLA MEJOR PORQUE LO HICE A LO AHI SE VA
+        void recuperarDeArchivo(int usuario)
+        { // AHORA ESTA FUNCION SOLO NOS VA A AYUDAR A RECUPERAR DATOS DEL ARCHIVO, PARA AHORRAR CODIGO EN LAS OTRAS FUNCIONES
             fstream fin("empleados.csv", ios::in);
             vector <string> datosEmpleado;
             string temp, linea, dato;
-            while(1)
+            while(fin.eof() == 0)
             {
                 datosEmpleado.clear();
                 getline(fin, linea);
@@ -211,7 +209,7 @@ class Empleado
         { // HARD CODEADO
             fstream fout;
             fout.open("empleados.csv", ios::out | ios::app);
-            fout << 1 << ", " << nombre << ", " << password << ", " << salario << ", " << 3 <<"\n";
+            fout << 1 << ", " << nombre << ", " << password << ", " << salario << ", " << tipoEmpleado <<"\n";
             fout.close();
         }
         void baja()
@@ -225,7 +223,7 @@ class Empleado
             fstream fin("empleados.csv", ios::in);
             vector <string> datosEmpleado;
             string temp, linea, dato;
-            while(1)
+            while(fin.eof() == 0)
             {
                 datosEmpleado.clear();
                 getline(fin, linea);
@@ -236,22 +234,18 @@ class Empleado
                 }
                 codigo = stoi(datosEmpleado[0]);
                 password = quitarEspacio(password);
-                pass = quitarEspacio(datosEmpleado[2]);
                 comparar = pass.compare(password);
                 if(usuario == codigo && comparar == 0)
                 {
                     return stoi(datosEmpleado[4]);
                 }
-                else
-                {
-                    gotoxy(POSICION_X, 23);
-                    cout << "Datos incorrectos";
-                    Sleep(1000);
-                    return 0;
-                }
             }
+            gotoxy(POSICION_X, 23);
+            cout << "Datos incorrectos";
+            Sleep(1000);
+            return 0;
         }
-        void mostrarEmpleados()
+        void mostrarEmpleados(int cantidadMostrar)
         {
 
         }
@@ -276,16 +270,25 @@ int buscar()
         system("cls");
         buscar.dibujarCuadrado();
         Empleado empleado = Empleado("temp", "temp", 0, 0);
-        empleado.buscar(codigo);
         getch();
         return 0;
     }
 }
 
-void abrirMenu(int menu)
+void menuOpciones(string titulo, int margen, int menu, int submenu)
+{
+    Menu menu = Menu(titulo, margen);
+    int posicion = 0;
+    int tecla;
+}
+
+void abrirMenu(int menu, int submenu)
 { // Funcion que abre los menus y submenus
     switch(menu)
     {
+    case 0:
+        break;
+
     case 1:
         break;
     
@@ -293,7 +296,10 @@ void abrirMenu(int menu)
         break;
 
     case 3:
-        buscar(); // HARD CODEADO
+        break;
+
+    case 4:
+        menuOpciones("Men\xA3 principal", -5, menu, submenu);
         break;
 
     default:
@@ -311,7 +317,7 @@ int login()
     while(1)
     {
         system("cls");
-        login.obtenerTexto(0);
+        login.obtenerTexto(6, 0);
         login.dibujarCuadrado();
         login.imprimirTexto(posicion);
         gotoxy(POSICION_X, 5);
@@ -353,12 +359,14 @@ int login()
                             break;
                         
                         case 3:
-                            abrirMenu(3);
+                            abrirMenu(4, 0);
                             break;
 
                         default:
                             break;
                     }
+                    codigo = 0;
+                    password = "";
                 }
 
                 case 3:
