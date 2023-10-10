@@ -169,6 +169,7 @@ class Empleado
         string nombre;
         string password;
         int codigo, salario, tipoEmpleado;
+        vector <string> datosEmpleado;
 
     public:
         Empleado(string _nombre, string _password, int _salario, int _tipoEmpledo)
@@ -181,7 +182,6 @@ class Empleado
         void recuperarDeArchivo(int usuario)
         { // AHORA ESTA FUNCION SOLO NOS VA A AYUDAR A RECUPERAR DATOS DEL ARCHIVO, PARA AHORRAR CODIGO EN LAS OTRAS FUNCIONES
             fstream fin("empleados.csv", ios::in);
-            vector <string> datosEmpleado;
             string temp, linea, dato;
             while(fin.eof() == 0)
             {
@@ -195,21 +195,18 @@ class Empleado
                 codigo = stoi(datosEmpleado[0]);
                 if(codigo == usuario)
                 {
-                    int y = POSICION_Y;
-                    for(int i=0; i<4; i++)
-                    {
-                        gotoxy(POSICION_X, y);
-                        cout << datosEmpleado[i];
-                        y += 3;
-                    }
+                    fin.close();
+                    break;
                 }
             }
+            fin.close();
         }
         void alta()
         { // HARD CODEADO
+            recuperarDeArchivo(0);
             fstream fout;
             fout.open("empleados.csv", ios::out | ios::app);
-            fout << 1 << ", " << nombre << ", " << password << ", " << salario << ", " << tipoEmpleado <<"\n";
+            fout << codigo++ << ", " << nombre << ", " << password << ", " << salario << ", " << tipoEmpleado <<"\n";
             fout.close();
         }
         void baja()
@@ -217,28 +214,19 @@ class Empleado
 
         }
         int comprobarPass(int usuario)
-        { // AUN TENGO MIS DUDAS SOBRE ESTA FUNCION, YA CUANDO PUEDA LA REVISO A DETALLE, PERO SE QUE FUNCIONA CON EL ADMIN
+        { // Esta funcion comprueba el usuario y la contraseña del usuario
             string pass;
             int comparar;
-            fstream fin("empleados.csv", ios::in);
-            vector <string> datosEmpleado;
-            string temp, linea, dato;
-            while(fin.eof() == 0)
+            recuperarDeArchivo(usuario);
+            codigo = stoi(datosEmpleado[0]);
+            password = quitarEspacio(password);
+            pass = quitarEspacio(datosEmpleado[2]);
+            comparar = pass.compare(password);
+            if(usuario == codigo && comparar == 0)
             {
-                datosEmpleado.clear();
-                getline(fin, linea);
-                stringstream s(linea);
-                while(getline(s, dato, ','))
-                {
-                    datosEmpleado.push_back(dato);
-                }
-                codigo = stoi(datosEmpleado[0]);
-                password = quitarEspacio(password);
-                comparar = pass.compare(password);
-                if(usuario == codigo && comparar == 0)
-                {
-                    return stoi(datosEmpleado[4]);
-                }
+                cout << "LOGRADO";
+                Sleep(1000);
+                return stoi(datosEmpleado[4]);
             }
             gotoxy(POSICION_X, 23);
             cout << "Datos incorrectos";
@@ -275,9 +263,9 @@ int buscar()
     }
 }
 
-void menuOpciones(string titulo, int margen, int menu, int submenu)
+void menuOpciones(string titulo, int margen, int ID_menu, int submenu)
 {
-    Menu menu = Menu(titulo, margen);
+    Menu menuTexo = Menu(titulo, margen);
     int posicion = 0;
     int tecla;
 }
@@ -382,8 +370,8 @@ int login()
 
 int main()
 {
-    Empleado empleado = Empleado("Admin", "1234", 900, 3);
-    empleado.alta();
+    // Empleado empleado = Empleado("Admin", "1234", 900, 3);
+    // empleado.alta();
     login();
 }
 
@@ -397,12 +385,14 @@ int main()
     > TERMINAR EL LOGIN Y SUS OPCIONES
     > PONER EN PRACTICA LA CLASE DE LOS MENUS
     > AL CHILE NI SE QUE TANTO LE VAMOS A METER AL PROYECTO
-    > C++ == PYTHON >> JAVA
 
 --------------------------------------------------------------------- 2da revisión
     > YA FUNCIONA EL LOGIN CON EL ADMIN, YA FALTARIA IMPLEMENTARLO EN LOS DEMAS EMPLEADOS
     > LA FUNCION ALTAS DE LOS EMPLEADOS POR AHORA ESTA HARD CODEADA, LUEGO LO CAMBIO YA QUE HAGAMOS LAS ALTAS
     > YA SE CREA EL ARCHIVO, Y LO LEE, PUTO DESMADRE HACER ESA MAMADA
-    > LOS TUTORIALES PARA HACER ALGO NO SIRVEN, STACK ORVERFLOW NO SIRVE, VAYANSE TODOS A LA VERGA, TUVE QUE LEER LA DOCUMENTACION DE LAS MIERDAS QUE USE
-    > LA NETA HAY MUCHAS PARTES HARD CODEADAS, PERO LO HICE PARA SEGUN ENTREGAR LA MIERDA ESTA PERO NO ALCANCE
+
+--------------------------------------------------------------------- 3ra revisión
+    > AHORA USAMOS UN GITHUB WUUUUUUUUUUUUUU
+    > POR FAVOR APRENDE A USAR GIT QUE YA NO TE VOY A PASAR ARCHIVOS POR WHATS
+    > PORFA SI QUIERA DIME QUE COSAS VAMOS A METERLE AL PROYECTO PARA TENER CLARO LO QUE VOY A PROGRAMAR
 */
