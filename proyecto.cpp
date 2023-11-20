@@ -3,13 +3,6 @@
 // POO 3-5
 // Proyecto
 
-//-------------------------------------------------------------------
-
-// MI RULAS, LEE HASTA ABAJO LO QUE HACE FALTA
-// TODOS LOS COMENTARIOS ESCRITOS EN MAYUSCULA SON PARA NOSOTROS
-
-//-------------------------------------------------------------------
-
 #include <iostream>
 #include <fstream>
 #include <conio.h>
@@ -33,6 +26,71 @@
 
 using namespace std;
 void abrirMenu(int menu, int submenu);
+
+void crearAdmin()
+{
+    ifstream fi("empleados.csv");
+    fi.seekg(0, ios::end);
+    int contar = fi.tellg();
+    fi.close();
+    if(contar == 0)
+    {
+        fstream fout;
+        fout.open("empleados.csv", ios::out | ios::app);
+        fout << 1 << ", " << "admin" << ", " << 1234 << ", " << 100 << ", " << 1 << ", " << 0 << ", " << 2 << ", ";
+        for(int i=0; i<7; i++)
+        {
+            if(i == 6) fout << 1 << "\n";
+            else fout << 1 << ", ";
+        }
+        fout.close();
+    }
+}
+
+void siExiste()
+{
+    string archivos[3] = {"empleados.csv", "zapatos.csv", "tickets.csv"};
+    for(int i=0; i<3; i++)
+    {
+        ifstream file;
+        file.open(archivos[i]);
+        if(!file)
+        {
+            ofstream crear(archivos[i]);
+            crear.close();
+        }
+        else file.close();
+    }
+    crearAdmin();
+}
+
+vector <string> TxtSecundario(int opc)
+{
+    vector <string> txt;
+    switch (opc)
+    {
+    case 0:
+        txt.push_back("Mujer");
+        txt.push_back("Hombre");
+        break;
+
+    case 1:
+        txt.push_back("Lunes");
+        txt.push_back("Martes");
+        txt.push_back("Mi\x82rcoles");
+        txt.push_back("Jueves");
+        txt.push_back("Viernes");
+        txt.push_back("S\xA0""bado");
+        txt.push_back("Domingo");
+        txt.push_back("Confirmar");
+        break;
+
+    default:
+        break;
+    }
+    return txt;
+}
+
 void gotoxy(int x, int y)
 { // Esta funcion nos permite escribir texto en cualquier parte de la consola
     HANDLE ventana;
@@ -86,6 +144,24 @@ class Menu
             case 1:
                 switch(submenu)
                 {
+                    case 0:
+                        opciones.push_back("Ingresa el c\xA2""digo del zapato");
+                        opciones.push_back("Confirmar");
+                        numOpciones = 2;
+                        break;
+
+                    case 1:
+                        opciones.push_back("Ingresa el c\xA2""digo del zapato");
+                        numOpciones = 1;
+                        break;
+
+                    case 2:
+                        opciones.push_back("Ingresa el c\xA2""digo del empleado");
+                        opciones.push_back("Motivo (Opcional)");
+                        opciones.push_back("Confirmar");
+                        numOpciones = 3;
+                        break;
+
                     case 3:
                         opciones.push_back("Nombre");
                         opciones.push_back("Talla");
@@ -110,6 +186,14 @@ class Menu
                 switch(submenu)
                 {
                     case 1:
+                        opciones.push_back("Nombre");
+                        opciones.push_back("Contrase\xA4""a");
+                        opciones.push_back("Edad");
+                        opciones.push_back("G\x82nero");
+                        opciones.push_back("Salario");
+                        opciones.push_back("Horario");
+                        opciones.push_back("Confirmar");
+                        numOpciones = 7;
                         break;
 
                     case 10:
@@ -132,8 +216,8 @@ class Menu
             case 4:
                 opciones.push_back("NO");
                 opciones.push_back("S\xD6");
+                numOpciones = 1;
                 return 1;
-                break;
             
             default:
                 break;
@@ -152,6 +236,18 @@ class Menu
                 if(i == posicion_flecha) cout << opciones[i] << " <---";
                 else cout << opciones[i];
                 y += 3;
+            }
+        }
+        void textoSecundario(int posicion_flecha, int n_txt, int max_pos)
+        {
+            vector <string> txt = TxtSecundario(n_txt);
+            y = POSICION_Y+5;
+            for(int i=0; i<=max_pos; i++)
+            {
+                gotoxy(POSICION_X+30, y);
+                if(i == posicion_flecha) cout << txt[i] << " <---";
+                else cout << txt[i];
+                y += 2;
             }
         }
         int cambiarPosicion(int tecla, int posicion)
@@ -173,36 +269,40 @@ class Menu
             }
             return posicion;
         }
-        int confirmar()
+        int posicionSecundaria(int tecla, int posicion, int max_pos)
         {
-            const int confirmar = obtenerTexto(4, 0);
-            int posicion_conf = 0;
-            int tecla_conf;
-            while(1)
+            switch (tecla)
             {
-                dibujarCuadrado();
-                imprimirTexto(posicion_conf);
-                tecla_conf = getch();
-                posicion_conf = cambiarPosicion(tecla_conf, posicion_conf);
-                if(tecla_conf == ENTER)
-                {
-                    if(posicion_conf) return 1;
-                    else return 0;
-                }
+            case ARRIBA:
+                posicion--;
+                if(posicion < 0) posicion = max_pos;
+                break;
+            
+            case ABAJO:
+                posicion++;
+                if(posicion > max_pos) posicion = 0;
+                break;
+
+            default:
+                break;
             }
+            return posicion;
         }
+        ~Menu(){}
+        
 };
 
 class Zapato
 { // Clase para identificar los zapatos a vender
     private:
         string modelo, color;
-        long int numero_serie;
-        int talla, cantidad;
-        float precio;
+        int numero_serie;
+        int cantidad;
+        float precio, talla;
+        vector <string> datosZapato;
 
     public:
-        Zapato(string _modelo, string _color, int _talla, int _cantidad, float _precio)
+        Zapato(string _modelo, string _color, float _talla, int _cantidad, float _precio)
         {
             modelo = _modelo;
             color = _color;
@@ -210,65 +310,90 @@ class Zapato
             cantidad = _cantidad;
             precio = _precio;
         }
-        void obtenerDeArchivo(int nZapato)
+        int estaVacio()
         {
-            fstream fin("empleados.csv", ios::in);
+            ifstream fi("zapatos.csv");
+            fi.seekg(0, ios::end);
+            int contar = fi.tellg();
+            if(contar == 0)
+            {
+                fi.close();
+                return 1;
+            }
+            else return 0;
+        }
+        int recuperarDeArchivo(int nZapato)
+        {
+            if(estaVacio()) return 0;
+            fstream fin("zapatos.csv", ios::in);
             string temp, linea, dato;
             while(fin.eof() == 0)
             {
-                datosEmpleado.clear();
+                datosZapato.clear();
                 getline(fin, linea);
                 stringstream s(linea);
                 while(getline(s, dato, ','))
                 {
-                    datosEmpleado.push_back(dato);
+                    datosZapato.push_back(dato);
                 }
-                codigo = stoi(datosEmpleado[0]);
-                if(codigo == usuario)
+                numero_serie = stoi(datosZapato[0]);
+                if(numero_serie == nZapato)
                 {
                     fin.close();
                     break;
                 }
             }
             fin.close();
+            return numero_serie;
         }
         void alta()
         {
-            recuperarDeArchivo(0);
+            numero_serie = recuperarDeArchivo(0);
             fstream fout;
             fout.open("zapatos.csv", ios::out | ios::app);
-            fout << codigo++ << ", " << modelo << ", " << color << ", " << talla << ", " << cantidad << ", " << precio <<"\n";
+            fout << numero_serie+1 << ", " << modelo << ", " << color << ", " << talla << ", " << cantidad << ", " << precio << "\n";
             fout.close();
         }
         void reestock()
         {
 
         }
-        void buscar()
+        int buscar(int nSerie)
         {
-
+            int y = 15;
+            recuperarDeArchivo(nSerie);
+            if(nSerie == numero_serie)
+            {
+                for(int i=1; i<=5; i++)
+                {
+                    gotoxy(POSICION_X, y);
+                    cout << datosZapato[i];
+                    y += 2;
+                }
+            }
+            else return 0;
         }
+        ~Zapato(){}
 };
 
 class Empleado
 {
     private:
         string nombre, password;
-        int codigo, tipoEmpleado;
+        int codigo, edad, genero;
         float salario;
-        char genero;
-        int horario[7];
         vector <string> datosEmpleado;
 
     public:
-        Empleado(string _nombre, string _password, int _salario, int _tipoEmpledo)
+        Empleado(string _nombre, string _password, int _edad, float _salario, int _genero)
         {
             nombre = _nombre;
             password = _password;
+            edad = _edad;
+            genero = _genero;
             salario = _salario;
-            tipoEmpleado = _tipoEmpledo;
         }
-        void recuperarDeArchivo(int usuario)
+        int recuperarDeArchivo(int usuario)
         { // Esta funcion nos ayuda a recuperar datos del archivo y reutilizarlos a lo largo del objeto
             fstream fin("empleados.csv", ios::in);
             string temp, linea, dato;
@@ -288,14 +413,20 @@ class Empleado
                     break;
                 }
             }
+            return codigo;
             fin.close();
         }
-        void alta()
+        void alta(int* horario)
         {
-            recuperarDeArchivo(0);
+            codigo = recuperarDeArchivo(0);
             fstream fout;
             fout.open("empleados.csv", ios::out | ios::app);
-            fout << codigo++ << ", " << nombre << ", " << password << ", " << salario << ", " << tipoEmpleado <<"\n";
+            fout << codigo+1 << ", " << nombre << ", " << password << ", " << edad << ", " << genero << ", " << salario << ", " << 1 << ", ";
+            for(int i=0; i<7; i++)
+            {
+                if(i == 6) fout << horario[i] << "\n";
+                else fout << horario[i] << ", ";
+            }
             fout.close();
         }
         void baja()
@@ -321,30 +452,208 @@ class Empleado
             Sleep(1000);
             return 0;
         }
-        void mostrarEmpleados(int cantidadMostrar)
-        {
-
-        }
         ~Empleado(){} // Destructor de la clase Empleado
 };
 
-int buscar()
+int confirmar()
 {
-    Menu buscar = Menu("Buscar Empleados", 0);
-    int codigo;
+    Menu guardar = Menu("\xA8Quieres guardar los cambios?", -10);
+    guardar.obtenerTexto(4, 0);
     int posicion = 0;
+    int tecla;
+    while(1)
+    {
+        guardar.dibujarCuadrado();
+        guardar.imprimirTexto(posicion);
+        tecla = getch();
+        posicion = guardar.cambiarPosicion(tecla, posicion);
+        if(tecla == ENTER)
+        {
+            if(posicion) return 1;
+            else return 0;
+        }
+    }
+}
+
+int buscar(int menu, int submenu, int margen)
+{
+    Menu buscar = Menu("Buscar Productos", margen);
+    int codigo = 0, posicion = 0, encontrado = 0, tecla;
+    const int salir = buscar.obtenerTexto(menu, submenu);
     while(1)
     {
         buscar.dibujarCuadrado();
+        buscar.imprimirTexto(posicion);
+        gotoxy(POSICION_X, 5);
+        cout << codigo;
+        if(encontrado)
+        {
+            Zapato encontrar = Zapato("x", "x", 0, 0, 0);
+            encontrado = encontrar.buscar(codigo);
+            if(!encontrado)
+            {
+                gotoxy(POSICION_X, 10);
+                cout << "Producto no encontrado";
+                continue;
+            }
+            encontrar.~Zapato();
+        }
+        tecla = getch();
+        posicion = buscar.cambiarPosicion(tecla, posicion);
+        if(tecla == ENTER)
+        {
+            if(posicion == 1)
+            {
+                buscar.~Menu();
+                return 0;
+            }
+            switch(posicion)
+            {
+            case 0:
+                gotoxy(POSICION_X, 5);
+                cout << ESPACIO;
+                gotoxy(POSICION_X, 5);
+                cin >> codigo;
+                encontrado = 1;
+                break;
+            
+            default:
+                break;
+            }
+        }
     }
+}
+
+int altasEmpleados(int menu, int submenu, int margen)
+{
+    Menu altas = Menu("Altas empleados", margen);
+    string nombre = "", password = "";
+    char dias[7] = {'L', 'M', 'I', 'J', 'V', 'S', 'D'};
+    int edad = 0, genero = 1;
+    int movGenero = 0, movHorario = 0, conf = 0;
+    int posicion = 0, posicion_genero = 0, posicion_horario = 0, tecla;
+    int horario[7] = {0,0,0,0,0,0,0};
+    float salario = 0.0;
+    const int salir = altas.obtenerTexto(menu, submenu);
+    while (1)
+    {
+        altas.dibujarCuadrado();
+        altas.imprimirTexto(posicion);
+        gotoxy(POSICION_X, 5);
+        cout << nombre;
+        gotoxy(POSICION_X, 8);
+        cout << password;
+        gotoxy(POSICION_X, 11);
+        cout << edad;
+        gotoxy(POSICION_X, 14);
+        if(genero) cout << "Hombre";
+        else cout << "Mujer";
+        gotoxy(POSICION_X, 17);
+        cout << salario;
+        gotoxy(POSICION_X, 20);
+        for(int i=0; i<7; i++) if(horario[i]) cout << dias[i] << ", "; 
+        if(movGenero) altas.textoSecundario(posicion_genero, 0, 1);
+        else if(movHorario) altas.textoSecundario(posicion_horario, 1, 7);
+        tecla = getch();
+        if(movGenero) posicion_genero = altas.posicionSecundaria(tecla, posicion_genero, 1);
+        else if(movHorario) posicion_horario = altas.posicionSecundaria(tecla, posicion_horario, 7);
+        else posicion = altas.cambiarPosicion(tecla, posicion);
+        if(tecla == ENTER)
+        {
+            if(posicion == salir)
+            {
+                altas.~Menu();
+                return 0;
+            }
+            if(movGenero)
+            {
+                genero = posicion_genero;
+                movGenero = 0;
+            }
+            else if(movHorario)
+            {
+                if(posicion_horario == 7) movHorario = 0;
+                else
+                {
+                    if(horario[posicion_horario]) horario[posicion_horario] = 0;
+                    else horario[posicion_horario] = 1;
+                }
+            }
+            else
+            {
+                switch(posicion)
+                {
+                case 0:
+                    gotoxy(POSICION_X, 5);
+                    cout << ESPACIO;
+                    gotoxy(POSICION_X, 5);
+                    cin >> nombre;
+                    break;
+
+                case 1:
+                    gotoxy(POSICION_X, 8);
+                    cout << ESPACIO;
+                    gotoxy(POSICION_X, 8);
+                    cin >> password;
+                    break;
+
+                case 2:
+                    gotoxy(POSICION_X, 11);
+                    cout << ESPACIO;
+                    gotoxy(POSICION_X, 11);
+                    cin >> edad;
+                    break;
+
+                case 3:
+                    movGenero = 1;
+                    break;
+
+                case 4:
+                    gotoxy(POSICION_X, 17);
+                    cout << ESPACIO;
+                    gotoxy(POSICION_X, 17);
+                    cin >> salario;
+                    break;
+
+                case 5:
+                    movHorario = 1;
+                    break;
+
+                case 6:
+                    if(nombre.compare("") == 0 || password.compare("") == 0) 
+                    {
+                        gotoxy(POSICION_X, 20);
+                        cout << "Por favor rellena los campos";
+                        Sleep(1000);
+                    }
+                    else
+                    {
+                        conf = confirmar();
+                        if(conf)
+                        {
+                            Empleado altaEmpleado = Empleado(nombre, password, edad, salario, genero);
+                            altaEmpleado.alta(horario);
+                            altaEmpleado.~Empleado();
+                            altas.~Menu();
+                            return 0;
+                        }
+                    }
+                
+                default:
+                    break;
+                }
+            }
+        }
+    }
+    
 }
 
 int altasProductos(int menu, int submenu, int margen)
 {
     Menu altas = Menu("Altas productos", margen);
     string nombre = "", color = "";
-    int talla = 0, cantidad = 0, tecla = 0, posicion = 0;
-    float precio = 0;
+    int cantidad = 0, tecla = 0, posicion = 0, conf = 0;
+    float precio = 0, talla = 0;
     const int salir = altas.obtenerTexto(menu, submenu);
     while(1)
     {
@@ -407,13 +716,22 @@ int altasProductos(int menu, int submenu, int margen)
                 break;
 
             case 5:
-                if(nombre.compare("") == 0 || color.compare("") == 0) cout << "Por favor rellena los campos";
+                if(nombre.compare("") == 0 || color.compare("") == 0) 
+                {
+                    gotoxy(POSICION_X, 20);
+                    cout << "Por favor rellena los campos";
+                    Sleep(1000);
+                }
                 else
                 {
-                    if(altas.confirmar())
+                    conf = confirmar();
+                    if(conf)
                     {
                         Zapato altaZapato = Zapato(nombre, color, talla, cantidad, precio);
-                        altaZapato.alta()
+                        altaZapato.alta();
+                        altaZapato.~Zapato();
+                        altas.~Menu();
+                        return 0;
                     }
                 }
                 break;
@@ -462,13 +780,14 @@ void abrirMenu(int menu, int submenu)
                 break;
 
             case 1:
+                buscar(menu, submenu, -5);
                 break;
 
             case 2:
                 break;
 
             case 3:
-                
+                altasProductos(menu, submenu, -4);
                 break;
 
             case 10:
@@ -484,6 +803,7 @@ void abrirMenu(int menu, int submenu)
                 break;
 
             case 1:
+                altasEmpleados(menu, submenu, -4);
                 break;
 
             case 2:
@@ -542,7 +862,7 @@ int login()
 
                 case 2:
                 {
-                    Empleado empleado = Empleado("temp", password, 0, 0);
+                    Empleado empleado = Empleado("temp", password, 0, 0, 0);
                     iniciarMenu = empleado.comprobarPass(codigo);
                     empleado.~Empleado();
                     if(iniciarMenu == 0) break;
@@ -561,6 +881,7 @@ int login()
 
 int main()
 {
-    altasProductos(1, 3, -4);
+    siExiste();
+    buscar(1, 1, -5);
     // login();
 }
