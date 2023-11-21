@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <conio.h>
+#include <stdio.h>
 #include <string>
 #include <sstream>
 #include <windows.h>
@@ -145,9 +146,6 @@ class Menu
                 switch(submenu)
                 {
                     case 0:
-                        opciones.push_back("Ingresa el c\xA2""digo del zapato");
-                        opciones.push_back("Confirmar");
-                        numOpciones = 2;
                         break;
 
                     case 1:
@@ -156,10 +154,6 @@ class Menu
                         break;
 
                     case 2:
-                        opciones.push_back("Ingresa el c\xA2""digo del empleado");
-                        opciones.push_back("Motivo (Opcional)");
-                        opciones.push_back("Confirmar");
-                        numOpciones = 3;
                         break;
 
                     case 3:
@@ -185,6 +179,12 @@ class Menu
             case 2:
                 switch(submenu)
                 {
+                    case 0:
+                        opciones.push_back("Ingresa el c\xA2""digo del zapato");
+                        opciones.push_back("Confirmar");
+                        numOpciones = 2;
+                        break;
+
                     case 1:
                         opciones.push_back("Nombre");
                         opciones.push_back("Contrase\xA4""a");
@@ -194,6 +194,13 @@ class Menu
                         opciones.push_back("Horario");
                         opciones.push_back("Confirmar");
                         numOpciones = 7;
+                        break;
+
+                    case 2:
+                        opciones.push_back("Ingresa el c\xA2""digo del empleado");
+                        opciones.push_back("Motivo (Opcional)");
+                        opciones.push_back("Confirmar");
+                        numOpciones = 3;
                         break;
 
                     case 10:
@@ -354,10 +361,39 @@ class Zapato
             fout << numero_serie+1 << ", " << modelo << ", " << color << ", " << talla << ", " << cantidad << ", " << precio << "\n";
             fout.close();
         }
-        void reestock()
+        void baja(int nSerie)
         {
-
+            fstream fout;
+            fout.open("temp.csv", ios::out | ios::app);
+            fstream fin("zapatos.csv", ios::in);
+            string temp, linea, dato;
+            while(fin.eof() == 0)
+            {
+                datosZapato.clear();
+                getline(fin, linea);
+                stringstream s(linea);
+                while(getline(s, dato, ','))
+                {
+                    datosZapato.push_back(dato);
+                }
+                numero_serie = stoi(datosZapato[0]);
+                if(nSerie != numero_serie && linea.compare("") != 0) fout << linea << "\n";
+                else
+                {
+                    gotoxy(POSICION_X, 15);
+                    cout << "No se pudo borrar el usuario";
+                    fin.close();
+                    fout.close();
+                    remove("temp.csv");
+                    return;
+                }
+            }
+            fin.close();
+            fout.close();
+            remove("zapatos.csv");
+            rename("temp.csv", "zapatos.csv");
         }
+            
         int buscar(int nSerie)
         {
             int y = 15;
@@ -429,9 +465,37 @@ class Empleado
             }
             fout.close();
         }
-        void baja()
+        void baja(int usuario)
         {
-
+            fstream fout;
+            fout.open("temp.csv", ios::out | ios::app);
+            fstream fin("empleados.csv", ios::in);
+            string temp, linea, dato;
+            while(fin.eof() == 0)
+            {
+                datosEmpleado.clear();
+                getline(fin, linea);
+                stringstream s(linea);
+                while(getline(s, dato, ','))
+                {
+                    datosEmpleado.push_back(dato);
+                }
+                codigo = stoi(datosEmpleado[0]);
+                if(codigo != usuario && linea.compare("") != 0 && usuario != 1) fout << linea << "\n";
+                else
+                {
+                    gotoxy(POSICION_X, 15);
+                    cout << "No se pudo borrar el usuario";
+                    fin.close();
+                    fout.close();
+                    remove("temp.csv");
+                    return;
+                }
+            }
+            fin.close();
+            fout.close();
+            remove("empleados.csv");
+            rename("temp.csv", "empleados.csv");
         }
         int comprobarPass(int usuario)
         { // Esta funcion comprueba el usuario y la contraseña del usuario
@@ -473,6 +537,93 @@ int confirmar()
             else return 0;
         }
     }
+}
+
+int bajas(int menu, int submenu, int margen)
+{
+    string titulo;
+    if(submenu == 2) titulo = "Baja Empleados";
+    else titulo = "Baja Productos";
+    Menu bajas = Menu(titulo, margen);
+    string razon = "";
+    int codigo = 0, posicion = 0, tecla, conf;
+    bajas.obtenerTexto(menu, submenu);
+    while(1)
+    {
+        bajas.dibujarCuadrado();
+        bajas.imprimirTexto(posicion);
+        gotoxy(POSICION_X, 5);
+        cout << codigo;
+        if(submenu == 2)
+        {
+            gotoxy(POSICION_X, 8);
+            cout << razon;
+        }
+        tecla = getch();
+        posicion = bajas.cambiarPosicion(tecla, posicion);
+        if(tecla == ENTER)
+        {
+            switch(posicion)
+            {
+            case 0:
+                gotoxy(POSICION_X, 5);
+                cout << ESPACIO;
+                gotoxy(POSICION_X, 5);
+                cin >> codigo;
+                break;
+            
+            case 1:
+                if(submenu == 2)
+                {
+                    gotoxy(POSICION_X, 8);
+                    cout << ESPACIO;
+                    gotoxy(POSICION_X, 8);
+                    getline(cin, razon);
+                }
+                else
+                {
+                    conf = confirmar();
+                    if(conf)
+                    {
+                        Zapato baja = Zapato("x", "x", 0, 0, 0);
+                        baja.baja(codigo);
+                        baja.~Zapato();
+                        bajas.~Menu();
+                        return 0;
+                    }
+                }
+                break;
+            
+            case 2:
+                if(submenu == 0)
+                {
+                    bajas.~Menu();
+                    return 0;
+                }
+                else
+                {
+                    conf = confirmar();
+                    if(conf)
+                    {
+                        Empleado baja = Empleado("x", "x", 0, 0, 0);
+                        baja.baja(codigo);
+                        baja.~Empleado();
+                        bajas.~Menu();
+                        return 0;
+                    }
+                }
+                break;
+            
+            case 3:
+                bajas.~Menu();
+                return 0;
+
+            default:
+                break;
+            }
+        }
+    }
+    
 }
 
 int buscar(int menu, int submenu, int margen)
@@ -587,7 +738,7 @@ int altasEmpleados(int menu, int submenu, int margen)
                     gotoxy(POSICION_X, 5);
                     cout << ESPACIO;
                     gotoxy(POSICION_X, 5);
-                    cin >> nombre;
+                    getline(cin, nombre);
                     break;
 
                 case 1:
@@ -684,7 +835,7 @@ int altasProductos(int menu, int submenu, int margen)
                 gotoxy(POSICION_X, 5);
                 cout << ESPACIO;
                 gotoxy(POSICION_X, 5);
-                cin >> nombre;
+                getline(cin, nombre);
                 break;
 
             case 1:
@@ -882,6 +1033,6 @@ int login()
 int main()
 {
     siExiste();
-    buscar(1, 1, -5);
+    bajas(2, 2, -2);
     // login();
 }
