@@ -539,6 +539,11 @@ int confirmar()
     }
 }
 
+int ventas(int menu, int submenu, int margen)
+{
+    
+}
+
 int bajas(int menu, int submenu, int margen)
 {
     string titulo;
